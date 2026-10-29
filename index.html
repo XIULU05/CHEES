@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    (function () {
+      try {
+        var patchFetchDescriptor = function (target) {
+          if (!target) return;
+          var desc = Object.getOwnPropertyDescriptor(target, 'fetch');
+          if (desc && desc.configurable && desc.get && !desc.set) {
+            var currentGetter = desc.get;
+            var customFetch = null;
+            Object.defineProperty(target, 'fetch', {
+              configurable: true,
+              enumerable: desc.enumerable !== false,
+              get: function () {
+                return customFetch || currentGetter.call(this);
+              },
+              set: function (fn) {
+                if (typeof fn === 'function') {
+                  customFetch = fn;
+                }
+              }
+            });
+          }
+        };
+        patchFetchDescriptor(window);
+        if (typeof Window !== 'undefined' && Window.prototype) {
+          patchFetchDescriptor(Window.prototype);
+        }
+      } catch (_) {}
+
+      window.addEventListener(
+        'error',
+        function (event) {
+          var msg = String((event && event.message) || '');
+          var file = String((event && event.filename) || '');
+          if (
+            msg.indexOf('Cannot set property fetch') !== -1 ||
+            file.indexOf('chrome-extension://') === 0
+          ) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+          }
+        },
+        true
+      );
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wizard Chess 3D</title>
+  <meta name="description" content="Interactive 3D Gothic Cathedral Wizard Chess with sculpted stone pieces, cinematic melee captures, stone shatter physics, and single-player AI." />
+  <meta property="og:title" content="Wizard Chess — 3D Sanctum Edition" />
+  <meta property="og:description" content="Interactive 3D Gothic Cathedral Wizard Chess with sculpted stone pieces, cinematic melee captures, stone shatter physics, and single-player AI." />
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
