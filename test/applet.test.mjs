@@ -6,11 +6,14 @@ import zlib from 'node:zlib';
 
 const ROOT = process.cwd();
 
-test('Simplified Single-Player HUD in src/App.tsx excludes speed sliders, notation script bar, and multiplayer lobby', () => {
+test('HUD and Modes/Academy Modal in src/App.tsx include AI difficulty, multiplayer, and learning controls', () => {
   const appTsx = fs.readFileSync(path.join(ROOT, 'src/App.tsx'), 'utf-8');
 
-  // Must include simplified game & camera controls
   for (const requiredId of [
+    'btn-lobby',
+    'btn-difficulty',
+    'btn-hint',
+    'btn-undo',
     'btn-side-toggle',
     'btn-ai-move',
     'btn-reset',
@@ -20,27 +23,19 @@ test('Simplified Single-Player HUD in src/App.tsx excludes speed sliders, notati
     'btn-cam-wide',
     'btn-hide-ui',
     'controls-hint',
-    'captured-tray'
-  ]) {
-    assert.ok(appTsx.includes(`id="${requiredId}"`), `Missing required HUD control #${requiredId}`);
-  }
-
-  // Must NOT include camera speed sliders, script mode bar, or multiplayer lobby
-  for (const forbiddenId of [
-    'cam-speed-wrap',
-    'input-cam-speed',
-    'rot-speed-wrap',
-    'input-rot-speed',
-    'script-bar',
-    'btn-script-modal',
-    'btn-script-prev',
-    'btn-script-next',
-    'btn-lobby',
+    'captured-tray',
+    'coach-banner',
     'lobby-modal',
-    'room-pill',
-    'btn-checkmate-stepback'
+    'tab-single',
+    'tab-pass',
+    'tab-multi',
+    'tab-guide',
+    'diff-beginner',
+    'diff-casual',
+    'diff-tactical',
+    'diff-master'
   ]) {
-    assert.ok(!appTsx.includes(forbiddenId), `Forbidden UI element #${forbiddenId} found in App.tsx`);
+    assert.ok(appTsx.includes(`id="${requiredId}"`), `Missing required HUD/Modal control #${requiredId}`);
   }
 });
 

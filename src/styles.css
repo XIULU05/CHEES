@@ -641,6 +641,14 @@ body.cinematic-ui-hidden #hud-bottom {
     white-space: nowrap;
   }
 
+  /* 4 Mode & Learning buttons in 2x2 grid on mobile */
+  #btn-lobby,
+  #btn-difficulty,
+  #btn-hint,
+  #btn-undo {
+    grid-column: span 3;
+  }
+
   /* 3 Game Action buttons in a 3-column row */
   #btn-side-toggle,
   #btn-ai-move,
@@ -724,6 +732,16 @@ body.cinematic-ui-hidden #hud-bottom {
     flex-wrap: wrap;
     gap: 8px;
   }
+
+  #coach-banner {
+    bottom: 58px;
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    transform: none;
+    font-size: 0.78rem;
+    padding: 10px 14px;
+  }
 }
 
 @media (max-width: 380px) {
@@ -754,6 +772,563 @@ body.cinematic-ui-hidden #hud-bottom {
     grid-column: span 3;
   }
 }
+
+/* Room Pill (Active Online Room Indicator) */
+.room-pill {
+  background: rgba(14, 22, 34, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(78, 168, 222, 0.55);
+  padding: 7px 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #d8f3dc;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  transition: all 0.18s ease;
+}
+
+.room-pill:hover {
+  border-color: var(--gold-bright);
+  transform: translateY(-1px);
+}
+
+.room-pill.hidden {
+  display: none !important;
+}
+
+.room-code-badge {
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 0.88rem;
+  letter-spacing: 0.12em;
+  color: var(--gold-bright);
+  background: rgba(212, 175, 55, 0.18);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.room-sync-dot {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #52b788;
+}
+
+/* Coach Action Button Highlight */
+.coach-action-btn {
+  border-color: rgba(46, 196, 182, 0.48);
+  color: #99e2b4;
+}
+
+.coach-action-btn:hover {
+  border-color: #2ec4b6;
+  color: #cbf3f0;
+}
+
+/* Interactive Coaching & Piece Guide Banner */
+.coach-banner {
+  position: fixed;
+  bottom: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  max-width: 720px;
+  width: calc(100vw - 40px);
+  background: linear-gradient(135deg, rgba(12, 22, 28, 0.94), rgba(10, 15, 24, 0.96));
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(46, 196, 182, 0.55);
+  border-radius: 14px;
+  padding: 11px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.72), 0 0 22px rgba(46, 196, 182, 0.16);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: #f0ece1;
+  pointer-events: auto;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.coach-banner.hidden {
+  display: none !important;
+}
+
+.coach-banner-content strong {
+  color: var(--gold-bright);
+}
+
+.coach-banner-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+}
+
+.coach-banner-close:hover {
+  color: var(--text);
+  border-color: var(--gold);
+}
+
+body.cinematic-ui-hidden .coach-banner {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Modes, Multiplayer & Chess Academy Modal */
+#lobby-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgba(5, 7, 12, 0.76);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+#lobby-modal.open {
+  display: flex;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 590px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(16, 20, 30, 0.97) 0%, rgba(9, 12, 19, 0.99) 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.58);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: 0 24px 68px rgba(0, 0, 0, 0.88), 0 0 38px rgba(212, 175, 55, 0.14);
+  color: var(--text);
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+
+.modal-subtitle {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-close:hover {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+.modal-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 5px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  padding: 8px 6px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: center;
+}
+
+.modal-tab:hover {
+  color: var(--text);
+}
+
+.modal-tab.active {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: rgba(212, 175, 55, 0.55);
+  color: var(--gold-bright);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.side-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.side-option {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 11px 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.side-option strong {
+  font-size: 0.86rem;
+  color: var(--text);
+}
+
+.side-option span {
+  font-size: 0.73rem;
+  color: var(--muted);
+}
+
+.side-option.selected {
+  background: rgba(212, 175, 55, 0.16);
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.15);
+}
+
+.side-option.selected strong {
+  color: var(--gold-bright);
+}
+
+/* AI Difficulty Grid */
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.diff-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.18s ease;
+}
+
+.diff-card:hover {
+  border-color: rgba(212, 175, 55, 0.5);
+}
+
+.diff-card.selected {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.16);
+}
+
+.diff-stars {
+  font-size: 0.78rem;
+  color: var(--gold-bright);
+  letter-spacing: 0.08em;
+}
+
+.diff-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 2px 0;
+}
+
+.diff-tag {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.diff-desc-box {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  font-size: 0.77rem;
+  color: #e9e2d0;
+}
+
+/* Learning Guide Toggle Row */
+.coach-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(46, 196, 182, 0.08);
+  border: 1px solid rgba(46, 196, 182, 0.3);
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.coach-toggle-row input[type='checkbox'] {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: #2ec4b6;
+  cursor: pointer;
+}
+
+.coach-toggle-row strong {
+  display: block;
+  font-size: 0.82rem;
+  color: #cbf3f0;
+}
+
+.coach-toggle-row span {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.modal-action-btn {
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 11px;
+  border: 1px solid var(--gold);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.34), rgba(212, 175, 55, 0.16));
+  color: var(--gold-bright);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.modal-action-btn:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.48), rgba(212, 175, 55, 0.24));
+  transform: translateY(-1px);
+}
+
+/* Mode Info Box */
+.mode-info-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.mode-info-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--gold-bright);
+  margin-bottom: 6px;
+}
+
+.mode-info-box p {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #dcd7c9;
+}
+
+/* Multiplayer Room Code Box */
+.room-code-box {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(14, 24, 38, 0.85);
+  border: 1px solid rgba(78, 168, 222, 0.45);
+  text-align: center;
+}
+
+.room-code-hint {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.room-code-display {
+  font-family: monospace;
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  color: var(--gold-bright);
+  margin: 8px 0 12px;
+}
+
+.room-share-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.or-divider {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin: 14px 0;
+  position: relative;
+}
+
+.join-row {
+  display: flex;
+  gap: 10px;
+}
+
+.room-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--gold-bright);
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.room-input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.mp-status-msg {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* Chess Learning Guide Tab */
+.guide-intro {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #e5e0d5;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.guide-badge-blue {
+  color: #72efdd;
+  font-weight: 700;
+}
+
+.guide-badge-red {
+  color: #ff758f;
+  font-weight: 700;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.guide-piece-card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 10px;
+  padding: 9px 11px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.guide-piece-icon {
+  font-size: 1.55rem;
+  line-height: 1;
+  color: var(--gold-bright);
+  flex-shrink: 0;
+}
+
+.guide-piece-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--gold-bright);
+  margin-bottom: 2px;
+}
+
+.guide-piece-desc {
+  font-size: 0.72rem;
+  line-height: 1.38;
+  color: #d0cbc0;
+}
+
+.guide-tips-footer {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: rgba(46, 196, 182, 0.1);
+  border: 1px solid rgba(46, 196, 182, 0.32);
+  color: #cbf3f0;
+}
+
+@media (max-width: 560px) {
+  .modal-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .guide-grid,
+  .diff-grid,
+  .side-picker {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 
 
