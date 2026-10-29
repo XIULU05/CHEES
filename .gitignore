@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Production build output
+dist/
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# AI Studio temporary attachments
+public/assets/aistudio/
+
+# Editor & OS files
+.DS_Store
+*.log
