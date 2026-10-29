@@ -38,7 +38,7 @@ export function initWizardChess() {
     const container = document.getElementById('canvas-container') || document.getElementById('viewport-container');
     if (container) container.innerHTML = '';
     const isAutomatedTest = Boolean(
-      navigator.webdriver || new URLSearchParams(window.location.search).get('autotest') === '1'
+      new URLSearchParams(window.location.search).get('autotest') === '1'
     );
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -1450,6 +1450,7 @@ export function initWizardChess() {
     let playerColor = 'w';   // 'w' | 'b' | 'spectator'
     let aiAutoPlay = true;
     let aiTimer = null;
+    let aiTurnElapsed = 0;
 
     // Multiplayer State
     let roomCode = null;
@@ -1747,6 +1748,7 @@ export function initWizardChess() {
         clearTimeout(aiTimer);
         aiTimer = null;
       }
+      aiTurnElapsed = 0;
       preMoveHighlightTask = null;
       activeMoveTweens.length = 0;
       clearCheckmateSequence();
@@ -2479,52 +2481,57 @@ export function initWizardChess() {
       let prevPiecePos = piece.mesh.position.clone();
 
       function finishMove() {
-        resetBystandersToHome();
-        boardState[fromR][fromC] = null;
-        boardState[toR][toC] = piece;
-        piece.r = toR;
-        piece.c = toC;
-        piece.hasMoved = true;
+        try {
+          resetBystandersToHome();
+          boardState[fromR][fromC] = null;
+          boardState[toR][toC] = piece;
+          piece.r = toR;
+          piece.c = toC;
+          piece.hasMoved = true;
 
-        if (isCastling && castleRook) {
-          boardState[fromR][castleRookFromC] = null;
-          boardState[fromR][castleRookToC] = castleRook;
-          castleRook.r = fromR;
-          castleRook.c = castleRookToC;
-          castleRook.hasMoved = true;
-          if (castleRook.mesh) {
-            castleRook.mesh.position.copy(castleRookEndPos);
-            castleRook.mesh.rotation.y = castleRook.color === 'w' ? Math.PI : 0;
+          if (isCastling && castleRook) {
+            boardState[fromR][castleRookFromC] = null;
+            boardState[fromR][castleRookToC] = castleRook;
+            castleRook.r = fromR;
+            castleRook.c = castleRookToC;
+            castleRook.hasMoved = true;
+            if (castleRook.mesh) {
+              castleRook.mesh.position.copy(castleRookEndPos);
+              castleRook.mesh.rotation.y = castleRook.color === 'w' ? Math.PI : 0;
+            }
+            playPieceClip(castleRook, 'Idle', true, 0.18);
           }
-          playPieceClip(castleRook, 'Idle', true, 0.18);
-        }
 
-        // Pawn Promotion to Queen
-        if (piece.type === 'pawn' && (toR === 0 || toR === 7)) {
-          scene.remove(piece.mesh);
-          const promoted = instantiatePiece('queen', piece.color, toR, toC);
-          promoted.hasMoved = true;
-          boardState[toR][toC] = promoted;
-        } else {
-          piece.mesh.position.copy(endPos);
-          piece.mesh.rotation.y = piece.color === 'w' ? Math.PI : 0;
-          playPieceClip(piece, 'Idle', true, 0.18);
-        }
+          // Pawn Promotion to Queen
+          if (piece.type === 'pawn' && (toR === 0 || toR === 7)) {
+            scene.remove(piece.mesh);
+            const promoted = instantiatePiece('queen', piece.color, toR, toC);
+            promoted.hasMoved = true;
+            boardState[toR][toC] = promoted;
+          } else if (piece.mesh) {
+            piece.mesh.position.copy(endPos);
+            piece.mesh.rotation.y = piece.color === 'w' ? Math.PI : 0;
+            playPieceClip(piece, 'Idle', true, 0.18);
+          }
 
-        if (isCapture) {
-          if (piece.color === 'w') capturedByWhite += 1;
-          else capturedByBlack += 1;
-          activeDuelSavedCam = null;
-          camera.position.copy(savedCamPos);
-          orbitControls.target.copy(savedTarget);
-          orbitControls.enabled = true;
-          orbitControls.update();
+          if (isCapture) {
+            if (piece.color === 'w') capturedByWhite += 1;
+            else capturedByBlack += 1;
+            activeDuelSavedCam = null;
+            camera.position.copy(savedCamPos);
+            orbitControls.target.copy(savedTarget);
+            orbitControls.enabled = true;
+            orbitControls.update();
+          }
+        } catch (err) {
+          console.warn('Error during finishMove cleanup:', err);
+        } finally {
+          currentTurn = currentTurn === 'w' ? 'b' : 'w';
+          isAnimatingMove = false;
+          aiTurnElapsed = 0;
+          updateTurnUI();
+          maybeScheduleAIMove();
         }
-
-        currentTurn = currentTurn === 'w' ? 'b' : 'w';
-        isAnimatingMove = false;
-        updateTurnUI();
-        maybeScheduleAIMove();
       }
 
       function stepMove(dt) {
@@ -2813,7 +2820,16 @@ export function initWizardChess() {
     }
 
     function triggerAIMoveNow() {
-      if (isAnimatingMove || gameOver) return false;
+      if (gameOver) return false;
+      if (isAnimatingMove) {
+        completeCurrentMoveImmediately();
+        if (gameOver || isAnimatingMove) return false;
+      }
+      if (aiTimer) {
+        clearTimeout(aiTimer);
+        aiTimer = null;
+      }
+      aiTurnElapsed = 0;
       const chosen = chooseSmartAIMove(currentTurn);
       if (!chosen) return false;
       return executeChessMove(chosen.fromR, chosen.fromC, chosen.toR, chosen.toC);
@@ -2824,6 +2840,7 @@ export function initWizardChess() {
         clearTimeout(aiTimer);
         aiTimer = null;
       }
+      aiTurnElapsed = 0;
       if (gameOver || isAnimatingMove || preMoveHighlightTask) return;
       if (scriptedGameActive) return;
       if (gameMode !== 'single' || !aiAutoPlay) return;
@@ -3671,7 +3688,9 @@ export function initWizardChess() {
       const roomPill = document.getElementById('room-pill');
       const capturedTray = document.getElementById('captured-tray');
 
-      turnDot.className = 'turn-dot' + (currentTurn === 'b' ? ' black' : '');
+      if (turnDot) {
+        turnDot.className = 'turn-dot' + (currentTurn === 'b' ? ' black' : '');
+      }
 
       const legalMoves = getAllLegalMoves(currentTurn);
       const inCheck = isKingInCheck(currentTurn, boardState);
@@ -3680,14 +3699,14 @@ export function initWizardChess() {
         gameOver = true;
         if (inCheck) {
           const winner = currentTurn === 'w' ? 'Black' : 'White';
-          turnText.textContent = `Checkmate — ${winner} Wins`;
+          if (turnText) turnText.textContent = `Checkmate — ${winner} Wins`;
           if (!checkmateState.active) {
             triggerCheckmateSequence(currentTurn, currentTurn === 'w' ? 'b' : 'w');
           }
         } else {
-          turnText.textContent = 'Stalemate — Draw';
+          if (turnText) turnText.textContent = 'Stalemate — Draw';
         }
-      } else {
+      } else if (turnText) {
         const turnLabel = currentTurn === 'w' ? 'White to Move' : 'Black to Move';
         const aiColor = playerColor === 'w' ? 'b' : 'w';
         const isAiTurn = !scriptedGameActive && gameMode === 'single' && currentTurn === aiColor;
@@ -3714,10 +3733,12 @@ export function initWizardChess() {
         roomPill.style.display = 'none';
       }
 
-      if (capturedByWhite > 0 || capturedByBlack > 0) {
-        capturedTray.textContent = `Captured — White: ${capturedByWhite} | Black: ${capturedByBlack}`;
-      } else {
-        capturedTray.textContent = '';
+      if (capturedTray) {
+        if (capturedByWhite > 0 || capturedByBlack > 0) {
+          capturedTray.textContent = `Captured — White: ${capturedByWhite} | Black: ${capturedByBlack}`;
+        } else {
+          capturedTray.textContent = '';
+        }
       }
       if (typeof updateScriptBarUI === 'function') updateScriptBarUI();
     }
@@ -3738,9 +3759,14 @@ export function initWizardChess() {
       if (moveDist > 6) return;
       if (isAnimatingMove || gameOver) return;
 
-      // Enforce turn ownership in Multiplayer, and in Single Player only block while AI auto-move timer is actively pending
+      // Enforce turn ownership in Multiplayer and Single Player
       if (gameMode === 'multi' && currentTurn !== playerColor) return;
-      if (!scriptedGameActive && gameMode === 'single' && currentTurn !== playerColor && aiTimer !== null) return;
+      if (!scriptedGameActive && gameMode === 'single' && currentTurn !== playerColor) {
+        if (aiAutoPlay && !aiTimer) {
+          maybeScheduleAIMove();
+        }
+        return;
+      }
 
       const rect = renderer.domElement.getBoundingClientRect();
       pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -4679,7 +4705,8 @@ export function initWizardChess() {
     // Main Animation Loop
     // =========================================================================
     let elapsedTotal = 0;
-    function stepScene(dt, doRender = true) {
+    function stepScene(rawDt, doRender = true) {
+      const dt = Number.isFinite(rawDt) && rawDt > 0 ? Math.min(rawDt, 0.1) : 0.016;
       elapsedTotal += dt;
       const prevCamPos = camera.position.clone();
 
@@ -4705,6 +4732,26 @@ export function initWizardChess() {
       for (let i = activeMoveTweens.length - 1; i >= 0; i--) {
         const done = activeMoveTweens[i](dt);
         if (done) activeMoveTweens.splice(i, 1);
+      }
+
+      // Frame-loop AI turn watchdog: guarantees the opponent AI moves even if setTimeout is throttled or interrupted
+      const aiColor = playerColor === 'w' ? 'b' : 'w';
+      if (
+        !scriptedGameActive &&
+        gameMode === 'single' &&
+        aiAutoPlay &&
+        !gameOver &&
+        !isAnimatingMove &&
+        !preMoveHighlightTask &&
+        currentTurn === aiColor
+      ) {
+        aiTurnElapsed += dt;
+        if (aiTurnElapsed >= 0.56) {
+          aiTurnElapsed = 0;
+          triggerAIMoveNow();
+        }
+      } else {
+        aiTurnElapsed = 0;
       }
 
       // Feature 4: Video-game style WASD + R/F camera translation AND Arrow-key camera rotation
@@ -4907,7 +4954,7 @@ export function initWizardChess() {
     };
 
     function animate() {
-      if (!navigator.webdriver && !manualStepMode) {
+      if (!isAutomatedTest && !manualStepMode) {
         requestAnimationFrame(animate);
       }
       if (manualStepMode) return;
@@ -4925,13 +4972,14 @@ export function initWizardChess() {
     // Startup sequence (Standalone Single-Player AI Studio Applet)
     (async () => {
       await loadAllAssets();
+      clock.getDelta(); // Reset accumulated clock delta after asset loading
       const params = new URLSearchParams(window.location.search);
       const urlSide = params.get('side');
       if (urlSide === 'b' || urlSide === 'black') {
         playerColor = 'b';
       }
       resetChessBoard(true, true);
-      if (navigator.webdriver) {
+      if (isAutomatedTest) {
         window.wizardChess.stepBy(0.9, 15);
       } else {
         animate();
